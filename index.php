@@ -13,7 +13,7 @@
 
 <div class="container">
 
-<h2>Simple Notes App</h2>
+<h2>Simple Notes App With AWS </h2>
 
 <input type="text" id="title" placeholder="Enter note">
 
