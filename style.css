@@ -25,11 +25,17 @@ margin-bottom:10px;
 
 button{
 
-width:100%;
-padding:10px;
-background:pink;
+padding:8px;
+margin-top:5px;
 border:0;
 cursor:pointer;
+
+}
+
+.add-btn{
+
+width:100%;
+background:pink;
 
 }
 
@@ -38,5 +44,19 @@ cursor:pointer;
 background:#eee;
 padding:8px;
 margin-top:8px;
+
+}
+
+.edit{
+
+background:orange;
+margin-right:5px;
+
+}
+
+.delete{
+
+background:red;
+color:white;
 
 }
