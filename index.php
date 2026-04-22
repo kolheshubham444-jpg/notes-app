@@ -13,7 +13,7 @@
 
 <div class="container">
 
-<h2>Simple Notes App With AWS Setup .... </h2>
+<h2>Simple Notes App With AWS Setup  on local with help of mohan.... </h2>
 
 <input type="text" id="title" placeholder="Enter note">
 
