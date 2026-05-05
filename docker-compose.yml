@@ -1,0 +1,67 @@
+services:
+
+  # ── 1. PHP + Apache (your app) ──────────────────────────────
+  app:
+    build: .                          # Build using the Dockerfile in this folder
+    container_name: notevault_app
+    ports:
+      - "8888:80"                     # Your browser hits localhost:8888 → container port 80
+    volumes:
+      - ./uploads:/var/www/html/uploads   # Uploaded files persist on your machine
+    depends_on:
+      db:
+        condition: service_healthy    # Wait until MySQL is ready before starting app
+    environment:
+      DB_HOST: db                     # Use the service name "db" as the hostname
+      DB_USER: notevault
+      DB_PASS: notevault123
+      DB_NAME: notes_app
+    networks:
+      - notevault_net
+
+  # ── 2. MySQL database ────────────────────────────────────────
+  db:
+    image: mysql:8.0                  # Official MySQL image — no Dockerfile needed
+    container_name: notevault_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass123
+      MYSQL_DATABASE: notes_app       # Auto-creates this database on first run
+      MYSQL_USER: notevault
+      MYSQL_PASSWORD: notevault123
+    volumes:
+      - db_data:/var/lib/mysql        # Database files persist even if container restarts
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql  # Runs once on first boot
+    ports:
+      - "3307:3306"                   # Expose MySQL on 3307 so it won't clash with local MySQL
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "notevault", "-pnotevault123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - notevault_net
+
+  # ── 3. phpMyAdmin (visual DB manager — optional but handy) ───
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: notevault_pma
+    ports:
+      - "8889:80"                     # Open localhost:8889 in browser
+    environment:
+      PMA_HOST: db
+      PMA_USER: notevault
+      PMA_PASSWORD: notevault123
+    depends_on:
+      - db
+    networks:
+      - notevault_net
+
+# ── Named volume — survives container removal ──────────────────
+volumes:
+  db_data:
+
+# ── Internal network — containers talk to each other ──────────
+networks:
+  notevault_net:
+    driver: bridge

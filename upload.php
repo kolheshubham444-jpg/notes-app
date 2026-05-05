@@ -1,27 +1,25 @@
 <?php
+require 'db.php';
 
-$conn = new mysqli("localhost", "root", "Root@123", "notes_app");
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 
-if(isset($_POST['title']) && isset($_FILES['file'])){
-
-    $title = $_POST['title'];
-
-    $fileName = $_FILES['file']['name'];
+if (isset($_POST['title']) && isset($_FILES['file'])) {
+    $user_id  = $_SESSION['user_id'];
+    $title    = trim($_POST['title']);
+    $fileName = basename($_FILES['file']['name']);
     $tmpName  = $_FILES['file']['tmp_name'];
-
-    // unique name (important)
-    $newName = time() . "_" . $fileName;
-
+    $newName  = time() . "_" . $fileName;
     $uploadPath = "uploads/" . $newName;
 
-    // upload file
-    if(move_uploaded_file($tmpName, $uploadPath)){
-
-        // save in DB
-        $conn->query("INSERT INTO notes (title, file) VALUES ('$title', '$uploadPath')");
-
+    if (move_uploaded_file($tmpName, $uploadPath)) {
+        $stmt = $conn->prepare("INSERT INTO notes (title, file, user_id) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $title, $uploadPath, $user_id);
+        $stmt->execute();
+        $stmt->close();
         header("Location: index.php");
-
     } else {
         echo "File upload failed!";
     }
