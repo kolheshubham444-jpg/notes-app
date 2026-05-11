@@ -1,6 +1,5 @@
 <?php
-ob_start();         // buffer any accidental output so headers stay clean
-session_start();    // only need session, no DB connection
+session_start();
 
 $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 $word  = '';
@@ -9,38 +8,45 @@ for ($i = 0; $i < 6; $i++) {
 }
 $_SESSION['captcha_word'] = $word;
 
-$width  = 160;
-$height = 50;
-$img    = imagecreatetruecolor($width, $height);
+$colors = ['#1e3a8a','#7c3aed','#be123c','#065f46','#92400e','#1d4ed8'];
 
-$bg    = imagecolorallocate($img, 240, 240, 255);
-$fg    = imagecolorallocate($img, 30,  30,  120);
-$noise = imagecolorallocate($img, 180, 180, 210);
-
-imagefill($img, 0, 0, $bg);
-
-for ($i = 0; $i < 600; $i++) {
-    imagesetpixel($img, random_int(0, $width - 1), random_int(0, $height - 1), $noise);
+$letters = '';
+$x = 18;
+foreach (str_split($word) as $i => $char) {
+    $rotate = random_int(-18, 18);
+    $y      = random_int(28, 38);
+    $color  = $colors[$i % count($colors)];
+    $size   = random_int(20, 26);
+    $letters .= "<text x=\"$x\" y=\"$y\" fill=\"$color\" font-size=\"$size\" font-weight=\"bold\"
+        font-family=\"Arial,sans-serif\" transform=\"rotate($rotate,$x,$y)\">$char</text>";
+    $x += random_int(22, 28);
 }
 
+// noise lines
+$lines = '';
 for ($i = 0; $i < 5; $i++) {
-    imageline($img,
-        random_int(0, $width), random_int(0, $height),
-        random_int(0, $width), random_int(0, $height),
-        $noise
-    );
+    $x1 = random_int(0, 160); $y1 = random_int(0, 50);
+    $x2 = random_int(0, 160); $y2 = random_int(0, 50);
+    $lines .= "<line x1=\"$x1\" y1=\"$y1\" x2=\"$x2\" y2=\"$y2\"
+        stroke=\"#a5b4fc\" stroke-width=\"1.2\"/>";
 }
 
-$x = 14;
-foreach (str_split($word) as $char) {
-    $y = random_int(10, $height - 20);
-    imagechar($img, 5, $x, $y, $char, $fg);
-    $x += 22 + random_int(-2, 4);
+// noise dots
+$dots = '';
+for ($i = 0; $i < 30; $i++) {
+    $cx = random_int(0, 160); $cy = random_int(0, 50);
+    $dots .= "<circle cx=\"$cx\" cy=\"$cy\" r=\"1.5\" fill=\"#c7d2fe\"/>";
 }
 
-ob_end_clean();     // discard any buffered output before sending image
-header('Content-Type: image/png');
+header('Content-Type: image/svg+xml');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
-imagepng($img);
-imagedestroy($img);
+
+echo <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="50"
+     style="background:#eef2ff;border-radius:6px;">
+  $lines
+  $dots
+  $letters
+</svg>
+SVG;
