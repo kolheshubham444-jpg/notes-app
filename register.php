@@ -10,13 +10,16 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $email    = trim($_POST['email']);
-    $password = $_POST['password'];
-    $confirm  = $_POST['confirm'];
+    $username      = trim($_POST['username']);
+    $email         = trim($_POST['email']);
+    $password      = $_POST['password'];
+    $confirm       = $_POST['confirm'];
+    // captcha validated via session word set by captcha.php
 
     if (!$username || !$email || !$password || !$confirm) {
         $error = 'All fields are required.';
+    } elseif (strtoupper(trim($_POST['captcha'] ?? '')) !== ($_SESSION['captcha_word'] ?? '')) {
+        $error = 'Incorrect CAPTCHA. Please try again.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Enter a valid email address.';
     } elseif (strlen($password) < 6) {
@@ -42,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 }
+
+// captcha image is generated on-demand by captcha.php (sets $_SESSION['captcha_word'])
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -79,6 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label>Confirm Password</label>
             <input type="password" name="confirm" placeholder="Repeat password" required>
+
+            <label>CAPTCHA – type the characters you see</label>
+            <div class="captcha-wrap">
+                <img src="captcha.php" alt="CAPTCHA image" id="captchaImg" class="captcha-img">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('captchaImg').src='captcha.php?r='+Math.random()">&#8635; Refresh</button>
+            </div>
+            <input type="text" name="captcha" placeholder="Enter characters above" required autocomplete="off" maxlength="6">
 
             <button type="submit" class="btn btn-primary btn-full">Create Account</button>
         </form>

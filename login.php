@@ -9,11 +9,14 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
+    $username       = trim($_POST['username']);
+    $password       = $_POST['password'];
+    // captcha validated via session word set by captcha.php
 
     if (!$username || !$password) {
         $error = 'Please fill in all fields.';
+    } elseif (strtoupper(trim($_POST['captcha'] ?? '')) !== ($_SESSION['captcha_word'] ?? '')) {
+        $error = 'Incorrect CAPTCHA. Please try again.';
     } else {
         $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ? OR email = ?");
         $stmt->bind_param("ss", $username, $username);
@@ -32,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
 }
+
+// captcha image is generated on-demand by captcha.php (sets $_SESSION['captcha_word'])
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,6 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label>Password</label>
             <input type="password" name="password" placeholder="Your password" required>
+
+            <label>CAPTCHA – type the characters you see</label>
+            <div class="captcha-wrap">
+                <img src="captcha.php" alt="CAPTCHA image" id="captchaImg" class="captcha-img">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('captchaImg').src='captcha.php?r='+Math.random()">&#8635; Refresh</button>
+            </div>
+            <input type="text" name="captcha" placeholder="Enter characters above" required autocomplete="off" maxlength="6">
 
             <button type="submit" class="btn btn-primary btn-full">Log In</button>
         </form>

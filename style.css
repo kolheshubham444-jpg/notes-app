@@ -408,3 +408,18 @@ input.input-valid {
     .cta-banner { padding: 48px 20px; }
     .auth-card { padding: 32px 24px; }
 }
+
+/* ── CAPTCHA ── */
+.captcha-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.captcha-img {
+    border: 2px solid #c7d2fe;
+    border-radius: 6px;
+    display: block;
+    height: 50px;
+    width: 160px;
+}
